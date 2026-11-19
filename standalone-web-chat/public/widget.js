@@ -222,7 +222,7 @@
     const id = Number(m.id);
     if (id <= state.lastMessageId) return; // already shown (poll and socket can race)
     const el = document.createElement("div");
-    el.className = "msg " + (m.sender_type === "operator" ? "operator" : "customer");
+    el.className = "msg " + (m.sender_type === "operator" ? "operator" : "visitor");
     el.textContent = m.body;
     el.dataset.mid = String(id);
     $("messages").appendChild(el);
@@ -244,7 +244,7 @@
       netOk();
       if (state.conversationId !== id) return; // thread switched while in flight
       const operatorArrived = msgs.some((m) => Number(m.id) > state.lastMessageId && m.sender_type === "operator");
-      const closedAndWrote = state.lifecycle === "closed" && msgs.some((m) => m.sender_type === "customer");
+      const closedAndWrote = state.lifecycle === "closed" && msgs.some((m) => m.sender_type === "visitor");
       const incoming = state.armed && operatorArrived;
       msgs.forEach(addMessage);
       if (incoming) chime();

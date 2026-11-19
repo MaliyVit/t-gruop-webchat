@@ -103,7 +103,7 @@ await test("visitor starts a conversation; input validation on start", async () 
   assert.equal((await call("POST", url, { visitor: A, raw: JSON.stringify({ first_message: "y".repeat(40 * 1024) }), headers: { "content-type": "application/json" } })).status, 413, "oversized body");
 
   const r = await call("POST", url, {
-    visitor: A, body: { first_message: `Hello from visitor A ${run}`, source_page: "https://shop.example.com/product/1?email=a@b.c#x", idempotency_key: `start-${run}` },
+    visitor: A, body: { first_message: `Hello from visitor A ${run}`, source_page: "https://www.example.com/page/1?email=a@b.c#x", idempotency_key: `start-${run}` },
   });
   assert.equal(r.status, 201); convA = r.json.id; assert.equal(r.json.status, "new");
   assert.deepEqual(Object.keys(r.json).sort(), ["continued", "id", "status"], "response exposes no internal fields");
@@ -118,7 +118,7 @@ await test("starting again continues the active conversation; idempotent replay 
   assert.equal(msgs.length, 2, "first + second, replay added nothing");
   const fresh = await call("POST", "/api/visitor/conversations", { visitor: A, body: { first_message: "explicitly new thread", start_new: true } });
   assert.equal(fresh.status, 201); assert.notEqual(fresh.json.id, convA);
-  // The newest customer activity wins for resume.
+  // The newest visitor activity wins for resume.
   const active = (await call("GET", "/api/visitor/conversation", { visitor: A })).json.conversation;
   assert.equal(active.id, fresh.json.id);
 });
@@ -155,7 +155,7 @@ await test("operator sees the message, replies; visitor receives the reply in or
   const list = (await call("GET", "/api/conversations?spam=include", { cookie: op })).json;
   const item = list.conversations.find((c) => String(c.id) === String(convA));
   assert.ok(item, "conversation listed"); assert.ok(item.unread_count >= 3);
-  assert.equal(item.source_page, "https://shop.example.com/product/1", "query and fragment stripped");
+  assert.equal(item.source_page, "https://www.example.com/page/1", "query and fragment stripped");
   const full = (await call("GET", `/api/conversations/${convA}`, { cookie: op })).json;
   assert.equal(full.messages[0].body, `Hello from visitor A ${run}`);
   assert.deepEqual(full.messages.map((m) => Number(m.id)), full.messages.map((m) => Number(m.id)).sort((a, b) => a - b));

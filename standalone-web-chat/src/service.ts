@@ -28,11 +28,11 @@ async function applyMessageStatus(
   client: PgClient,
   conversationId: number,
   status: string,
-  actor: "customer" | "operator"
+  actor: "visitor" | "operator"
 ): Promise<boolean> {
   let next = status;
   if (actor === "operator" && status === "new") next = "open";
-  if (actor === "customer" && ["waiting", "resolved", "closed"].includes(status)) next = "open";
+  if (actor === "visitor" && ["waiting", "resolved", "closed"].includes(status)) next = "open";
   await client.query(`UPDATE conversations SET status = $2, updated_at = now() WHERE id = $1`, [conversationId, next]);
   return next !== status;
 }
@@ -57,11 +57,11 @@ const ACTIVE_BASE = `
     FROM conversations c
     LEFT JOIN LATERAL (
       SELECT m.id AS message_id FROM messages m
-       WHERE m.conversation_id = c.id AND m.sender_type = 'customer'
+       WHERE m.conversation_id = c.id AND m.sender_type = 'visitor'
        ORDER BY m.id DESC LIMIT 1
-    ) last_customer ON true
+    ) last_visitor ON true
    WHERE c.visitor_id = $1 AND c.status IN ('new', 'open', 'waiting')
-   ORDER BY last_customer.message_id DESC NULLS LAST, c.id DESC`;
+   ORDER BY last_visitor.message_id DESC NULLS LAST, c.id DESC`;
 const ACTIVE_SQL = `${ACTIVE_BASE} LIMIT 1`;
 const ACTIVE_SQL_LOCKED = `${ACTIVE_BASE} LIMIT 1 FOR UPDATE OF c`;
 
@@ -99,10 +99,10 @@ export async function startOrContinue(input: StartInput): Promise<StartResult> {
         const { id, status } = active.rows[0];
         await client.query(
           `INSERT INTO messages (conversation_id, sender_type, body, idempotency_key)
-           VALUES ($1, 'customer', $2, $3)`,
+           VALUES ($1, 'visitor', $2, $3)`,
           [id, input.firstMessage, input.idempotencyKey]
         );
-        const changed = await applyMessageStatus(client, Number(id), status, "customer");
+        const changed = await applyMessageStatus(client, Number(id), status, "visitor");
         kind = "continued";
         const convId = Number(id);
         events = [
@@ -131,7 +131,7 @@ export async function startOrContinue(input: StartInput): Promise<StartResult> {
       conversation = created.rows[0];
       await client.query(
         `INSERT INTO messages (conversation_id, sender_type, body, idempotency_key)
-         VALUES ($1, 'customer', $2, $3)`,
+         VALUES ($1, 'visitor', $2, $3)`,
         [conversation!.id, input.firstMessage, input.idempotencyKey]
       );
       const convId = Number(conversation!.id);
@@ -165,7 +165,7 @@ async function persistMessage(
   conversationId: number,
   body: string,
   idempotencyKey: string | null,
-  actor: { type: "customer"; visitorId: string } | { type: "operator"; operator: Operator }
+  actor: { type: "visitor"; visitorId: string } | { type: "operator"; operator: Operator }
 ): Promise<PostResult & { statusChanged?: boolean }> {
   const client = await pool.connect();
   try {
@@ -175,7 +175,7 @@ async function persistMessage(
     ]);
     // The visitor credential is checked under the same lock, before the
     // idempotency lookup, so a refused credential cannot read anything back.
-    if (!conv.rowCount || (actor.type === "customer" && conv.rows[0].visitor_id !== actor.visitorId)) {
+    if (!conv.rowCount || (actor.type === "visitor" && conv.rows[0].visitor_id !== actor.visitorId)) {
       await client.query("ROLLBACK");
       return { kind: "not_found" };
     }
@@ -213,13 +213,13 @@ async function persistMessage(
   }
 }
 
-export async function postCustomerMessage(
+export async function postVisitorMessage(
   conversationId: number,
   visitorId: string,
   body: string,
   idempotencyKey: string | null
 ): Promise<PostResult> {
-  const result = await persistMessage(conversationId, body, idempotencyKey, { type: "customer", visitorId });
+  const result = await persistMessage(conversationId, body, idempotencyKey, { type: "visitor", visitorId });
   if (result.kind === "created") {
     if (result.statusChanged) publish({ type: "meta", conversationId });
     publish({ type: "message", conversationId });

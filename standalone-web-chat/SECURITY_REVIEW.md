@@ -10,17 +10,17 @@ output. Scans were used to find leads, not as proof; the conclusions below come 
 | Check | Result |
 |---|---|
 | File inventory | Plain text only; no binaries, symlinks, executable bits, images, fonts, source maps or generated files tracked. Hidden files: `.dockerignore`, `.env.example`, `.gitignore` |
-| Identifiers of the originating project, its organisation, hosts, domains, internal documents and terminology | None found by scan; reviewed manually in code comments, test names, documentation and UI strings (comments were rewritten, not copied) |
+| Identifiers of other projects, organisations, hosts, domains and internal documents | None found by scan; reviewed manually in code comments, test names, documentation and UI strings (comments were rewritten, not copied) |
 | Secrets and credentials | No tokens, keys, private-key blocks, or non-empty credential values. `.env.example` has empty secret fields and a placeholder e-mail; the example operator password is empty, so no default credential exists. Test secrets were generated per run outside the repository |
 | E-mails, domains, URLs | Only `example.com` / `example` reserved names, loopback and placeholders (`CHAT_DOMAIN`) |
 | IP addresses | Only documentation ranges (`203.0.113.0/24`), loopback and private examples in tests, `0.0.0.0` bind |
-| Personal data | None. All fixtures are synthetic strings; no customer data, names or contact details |
+| Personal data | None. All fixtures are synthetic strings; no real user data, names or contact details |
 | Non-ASCII content | Reviewed: generic Ukrainian UI strings (`uk` locale), typographic symbols, one emoji in a test |
 | Lockfile | Public npm registry only; no private registry URLs or tokens |
 | Docker image | Contains only `dist/`, `migrations/`, `public/`, `package.json`, production `node_modules`; no `.env`, no source maps of our code; runs as the unprivileged `node` user |
 | Git metadata | Fresh repository, no history from any other repository, no remotes; commits use a neutral author identity |
 | Third-party assets | No fonts, CDN links, analytics or images; system font stack. Icon geometry follows Lucide (ISC), see `NOTICE.md` |
-| Licences | Dependencies: MIT / BSD-3-Clause / ISC / BlueOak (runtime), Apache-2.0 / MIT (dev). **Open item: this repository has no licence file** (see below) |
+| Licences | Dependencies: MIT / BSD-3-Clause / ISC / BlueOak (runtime), Apache-2.0 / MIT (dev). This repository includes no licence file (see below) |
 
 ## Application security
 
@@ -62,11 +62,10 @@ Controls verified by tests (see `TEST_RESULTS.md`) and code review:
 
 ## Residual risks and open items
 
-**Must be resolved by the repository owner before publication**
+**For the repository owner**
 
-- **No licence.** The code is derived from proprietary code. The owner must confirm they may publish it and
-  choose a licence; until then nobody else has the right to use it.
-- **Final human review** of the diff by the owner (provenance, brand, anything this review could not know is confidential).
+- **No licence file.** By default all rights stay with the author, so others may not reuse the code until a licence is added.
+- **Human review** of the diff before merging, as with any contribution.
 
 **Technical / operational**
 

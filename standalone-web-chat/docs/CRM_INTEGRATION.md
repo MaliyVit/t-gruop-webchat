@@ -58,7 +58,7 @@ integration endpoint and is never shown to visitors.
 The chat is deliberately anonymous: it stores a random browser token, not a person. Identity is yours to
 add. Typical options once you integrate: (a) an operator asks for a phone/e-mail in the conversation and
 records the CRM id in `external_ref`; (b) later, a signed-in-user hand-off from your site (not implemented
-here — it needs a server-signed assertion so visitors cannot impersonate customers).
+here — it needs a server-signed assertion so visitors cannot impersonate other people).
 
 ## 6. What is not implemented (by design, for now)
 
@@ -67,4 +67,4 @@ here — it needs a server-signed assertion so visitors cannot impersonate custo
   add retries and a delivery log if you do.
 - **Replying from the CRM.** The operator console is the reply channel. A CRM reply endpoint would reuse
   `postOperatorMessage()` in `src/service.ts` with a service identity instead of a session.
-- **Contact/customer tables.** Add them in a new migration when you know your CRM's data model.
+- **Contact tables.** Add them in a new migration when you know your CRM's data model.

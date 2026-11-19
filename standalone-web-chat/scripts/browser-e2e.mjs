@@ -1,6 +1,6 @@
 // Real-browser end-to-end test (Chromium via playwright-core), synthetic data only.
 // The widget is embedded from a *different origin* than the chat server, exactly
-// like on a customer's website.
+// like on a third-party website.
 //
 //   BASE_URL=http://127.0.0.1:8080 OPERATOR_EMAIL=... OPERATOR_PASSWORD=... \
 //   CHROMIUM=/path/to/chrome \
@@ -21,13 +21,13 @@ if (!EMAIL || !PASSWORD) throw new Error("set OPERATOR_EMAIL and OPERATOR_PASSWO
 if (SHOTS) mkdirSync(SHOTS, { recursive: true });
 const run = randomBytes(3).toString("hex");
 
-// A stand-in for the customer's website, served from another origin.
+// A stand-in for an embedding website, served from another origin.
 const hostPage = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Customer site</title></head><body style="font-family:sans-serif"><h1>Customer website</h1><p>Some page content.</p>
+<title>Host site</title></head><body style="font-family:sans-serif"><h1>Host website</h1><p>Some page content.</p>
 <script src="${BASE}/embed.js" defer></script></body></html>`;
 const hostServer = http.createServer((req, res) => { res.writeHead(200, { "content-type": "text/html" }); res.end(hostPage); });
 await new Promise((r) => hostServer.listen(HOST_PORT, "127.0.0.1", r));
-const HOST_URL = `http://127.0.0.1:${HOST_PORT}/products/shoes?utm=secret-tracking#frag`;
+const HOST_URL = `http://127.0.0.1:${HOST_PORT}/pages/sample?utm=campaign-x#frag`;
 
 let passed = 0, failed = 0;
 async function step(name, fn) {
@@ -58,7 +58,7 @@ const external = [];
 visitor.on("request", (r) => { const u = new URL(r.url()); if (!["127.0.0.1"].includes(u.hostname) && u.protocol.startsWith("http")) external.push(r.url()); });
 operator.on("request", (r) => { const u = new URL(r.url()); if (!["127.0.0.1"].includes(u.hostname) && u.protocol.startsWith("http")) external.push(r.url()); });
 
-console.log(`Browser E2E: chat ${BASE}, customer site http://127.0.0.1:${HOST_PORT}`);
+console.log(`Browser E2E: chat ${BASE}, host site http://127.0.0.1:${HOST_PORT}`);
 
 await step("operator signs in through the UI; wrong password is refused", async () => {
   await operator.goto(`${BASE}/operator`);
@@ -89,8 +89,8 @@ const xss = `<img src=x onerror="window.__xss=1"> <script>window.__xss=2</script
 await step("visitor sends the first message (HTML in the text stays text); it appears in the widget", async () => {
   await widget().locator("#first").fill(xss);
   await widget().locator("#startBtn").click();
-  await widget().locator(".msg.customer").first().waitFor();
-  assert.equal(await widget().locator(".msg.customer").first().textContent(), xss);
+  await widget().locator(".msg.visitor").first().waitFor();
+  assert.equal(await widget().locator(".msg.visitor").first().textContent(), xss);
   assert.equal(await widget().locator("#messages img, #messages script").count(), 0);
   assert.equal(await visitor.frames().at(-1).evaluate(() => window.__xss), undefined);
 });
@@ -101,12 +101,12 @@ await step("the operator inbox receives it in realtime (no reload); content is r
   await mine.waitFor({ timeout: 10000 });
   assert.match(await mine.locator(".preview").textContent(), /<img src=x/);
   await mine.click();
-  await operator.locator("#thread .msg.customer").first().waitFor();
-  assert.equal(await operator.locator("#thread .msg.customer span").first().textContent(), xss);
+  await operator.locator("#thread .msg.visitor").first().waitFor();
+  assert.equal(await operator.locator("#thread .msg.visitor span").first().textContent(), xss);
   assert.equal(await operator.locator("#thread img, #thread script").count(), 0);
   assert.equal(await operator.evaluate(() => window.__xss), undefined, "no script ran in the operator console");
   const sub = await operator.locator("#threadSub").textContent();
-  assert.ok(sub.includes("127.0.0.1") && sub.includes("/products/shoes") && !sub.includes("utm") && !sub.includes("secret-tracking"), `source page shows path only: ${sub}`);
+  assert.ok(sub.includes("127.0.0.1") && sub.includes("/pages/sample") && !sub.includes("utm") && !sub.includes("campaign-x"), `source page shows path only: ${sub}`);
   await shot(operator, "03-operator-thread");
 });
 
@@ -123,7 +123,7 @@ await step("operator replies; the visitor receives it and the header shows the o
 await step("after a page refresh the conversation, its history and the open panel are restored", async () => {
   await visitor.reload();
   await widget().locator(".msg.operator", { hasText: reply1 }).waitFor({ timeout: 10000 });
-  assert.equal(await widget().locator(".msg.customer").count(), 1);
+  assert.equal(await widget().locator(".msg.visitor").count(), 1);
   assert.ok(await widget().locator("#chat").isVisible(), "chat view, not the start form");
 });
 
@@ -185,7 +185,7 @@ await step("outage and reconnection: send fails visibly, text is kept, socket re
   while (Date.now() < deadline && !wsLog.slice(wsBefore).some((w) => !w.closed && w.frames.some((f) => f.includes('"subscribed"')))) await visitor.waitForTimeout(500);
   assert.ok(wsLog.slice(wsBefore).some((w) => !w.closed && w.frames.some((f) => f.includes('"subscribed"'))), "a new subscribed socket was opened after the outage");
   await widget().locator("#send").click(); // retry with the kept draft
-  await widget().locator(".msg.customer", { hasText: outageText }).waitFor({ timeout: 10000 });
+  await widget().locator(".msg.visitor", { hasText: outageText }).waitFor({ timeout: 10000 });
   await widget().locator("#notice").waitFor({ state: "hidden", timeout: 10000 });
   // The operator console recovered too: sign-in is required again? (sessions live in the DB, so it must not be)
   await operator.waitForFunction(() => document.querySelector("#thread")?.textContent?.includes("sent during outage"), null, { timeout: 30000 });
@@ -207,7 +207,7 @@ await step("mobile: the widget goes full-screen, fits the viewport and has no ho
   assert.ok(box.width >= 374 && box.height >= 666, `iframe covers the viewport (${box.width}x${box.height})`);
   await frame.locator("#first").fill(`mobile visitor ${run}`);
   await frame.locator("#startBtn").click();
-  await frame.locator(".msg.customer").first().waitFor();
+  await frame.locator(".msg.visitor").first().waitFor();
   assert.ok(await frame.locator("#input").isVisible() && await frame.locator("#send").isVisible());
   const overflow = await page.frames().at(-1).evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
   assert.equal(overflow, false, "no horizontal overflow inside the widget");

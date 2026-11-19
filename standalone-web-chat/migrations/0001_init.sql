@@ -46,7 +46,7 @@ CREATE INDEX conversations_updated_idx ON conversations (updated_at, id);
 CREATE TABLE messages (
   id                 BIGSERIAL PRIMARY KEY,   -- the id is the thread order
   conversation_id    BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
-  sender_type        TEXT NOT NULL CHECK (sender_type IN ('customer', 'operator')),
+  sender_type        TEXT NOT NULL CHECK (sender_type IN ('visitor', 'operator')),
   sender_name        TEXT,
   sender_operator_id BIGINT REFERENCES operators(id) ON DELETE SET NULL,
   body               TEXT NOT NULL,

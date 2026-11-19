@@ -7,7 +7,7 @@ import {
   MESSAGE_COLUMNS,
   toPublicMessage,
   startOrContinue,
-  postCustomerMessage,
+  postVisitorMessage,
   postOperatorMessage,
   updateConversation,
   visitorOwns,
@@ -148,7 +148,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
       if (!text.ok) return reply.code(400).send({ error: text.error });
       const key = checkOptionalKey("idempotency_key", req.body?.idempotency_key, MAX.idempotencyKey);
       if (key && !key.ok) return reply.code(400).send({ error: key.error });
-      const result = await postCustomerMessage(id, visitorId, text.value, key?.ok ? key.value : null);
+      const result = await postVisitorMessage(id, visitorId, text.value, key?.ok ? key.value : null);
       if (result.kind === "not_found" || result.kind === "closed") return notFound(reply);
       return reply.code(result.kind === "created" ? 201 : 200).send(toPublicMessage(result.message));
     }
@@ -178,7 +178,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
                   last.created_at AS last_message_at,
                   COALESCE(last.created_at, c.created_at) AS last_activity_at,
                   (SELECT COUNT(*)::int FROM messages m
-                    WHERE m.conversation_id = c.id AND m.sender_type = 'customer'
+                    WHERE m.conversation_id = c.id AND m.sender_type = 'visitor'
                       AND m.id > c.operator_seen_message_id) AS unread_count
              FROM conversations c
              LEFT JOIN LATERAL (

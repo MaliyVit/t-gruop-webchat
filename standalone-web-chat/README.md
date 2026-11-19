@@ -12,7 +12,7 @@ CRM integration is **not** included, but a small documented API is ready for it
 ([docs/CRM_INTEGRATION.md](docs/CRM_INTEGRATION.md)).
 
 ```
- customer's website                 your server (docker compose)
+ your website                       your server (docker compose)
 ┌───────────────────┐            ┌──────────────────────────────────────────┐
 │ <script embed.js> │            │  app (Node 22 + Fastify)      db         │
 │   └─ iframe ──────┼── HTTPS ──▶│  /widget  /operator  /api/*  ─▶ PostgreSQL│
@@ -217,5 +217,4 @@ Backups: `docker compose exec db pg_dump -U chat chat > backup.sql`.
 
 ## License
 
-No license file is included yet. The repository owner must choose one before the code is published or
-reused. Third-party dependencies are permissively licensed — see [NOTICE.md](NOTICE.md).
+No license file is included. Third-party dependencies are permissively licensed — see [NOTICE.md](NOTICE.md).

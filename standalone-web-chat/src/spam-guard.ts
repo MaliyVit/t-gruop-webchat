@@ -109,7 +109,7 @@ const NOOP: UndoRecord = () => {};
 
 // Decides and records in one step. A rejected message is not recorded (it never
 // became a conversation). `undo` takes the record back if the conversation was
-// not persisted after all, so a customer's retry is not mistaken for a duplicate.
+// not persisted after all, so a visitor's retry is not mistaken for a duplicate.
 export function assessConversationCreate(
   settings: SpamSettings,
   ip: string | null | undefined,

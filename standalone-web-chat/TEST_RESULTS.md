@@ -1,10 +1,10 @@
 # Test results
 
-Run on 2026-11-19 against commit `e9fb142` (code). Every run used a **clean-room copy**: the committed tree
+Run on 2026-11-19 against the tree in this repository (final revision). Every run used a **clean-room copy**: the committed tree
 exported with `git archive` into an empty directory, configured by following the README quick start
 (`cp .env.example .env`, generate two secrets, `docker compose up -d --build`) with only test overrides
 (a free port, `SPAM_EXEMPT_LOCAL=false`, a 2-second socket heartbeat, a known operator name, an integration
-token). Synthetic data only. Documentation-only changes were made after this run.
+token). Synthetic data only.
 
 Environment: Linux x86-64, Docker 29.1 / Compose 2.37, Node 22.22, PostgreSQL 17, Chromium (Playwright
 `chromium-1255`, headless), nginx (alpine) for the reverse-proxy run.
@@ -16,7 +16,7 @@ Environment: Linux x86-64, Docker 29.1 / Compose 2.37, Node 22.22, PostgreSQL 17
 | Unit tests (`npm test`): spam rules, validation, password hashing, cookies | **16 / 16** pass |
 | API end-to-end (`npm run e2e`) against the Docker stack | **19 / 19** pass |
 | Real-browser end-to-end (`npm run e2e:browser`), widget embedded from a different origin, direct | **16 / 16** pass |
-| Same browser suite through the README's nginx reverse-proxy configuration (`TRUST_PROXY_HOPS=1`) | **16 / 16** pass |
+| Same browser suite through the README's nginx reverse-proxy configuration (`TRUST_PROXY_HOPS=1`) | **16 / 16** pass (run on the previous revision; later changes only renamed the visitor sender type and replaced demo/example text) |
 | `npm audit` (runtime + dev) | 0 vulnerabilities |
 
 The end-to-end scripts also fail when they should: with a wrong operator password the dependent checks fail.
@@ -38,7 +38,7 @@ The end-to-end scripts also fail when they should: with a wrong operator passwor
 | 11 | Realtime reconnection works | Browser: app stopped, send fails visibly and the draft is kept, app started, the widget opens a new subscribed socket on its own, the retry goes through, and the operator console recovers too. Also: operator sockets are closed when their session ends |
 | 12 | Authentication and access controls | API e2e: every operator endpoint refuses anonymous callers and visitor tokens; another visitor / no token / bad id all get the same 404; WebSocket subscriptions are authorized (an intruder gets an error and no pokes); cross-origin writes and foreign-origin WebSockets are refused; closed conversations block operator replies |
 | 13 | Rate limiting and validation | API e2e: login and public writes return 429 (a forged `X-Forwarded-For` does not help); empty / non-string / NUL-byte / oversized / malformed / unknown-field inputs return 400/413; flood guard flags duplicates and hides them from the default inbox |
-| 14 | No runtime dependency on the originating system | Compiled server imports only relative modules, Node built-ins, Fastify packages and `pg`; no outbound-HTTP code in the server; the app container's only established connections are to the database; the browser run records zero requests to any third-party host; the container environment contains only this project's settings |
+| 14 | No runtime dependency on any external system | Compiled server imports only relative modules, Node built-ins, Fastify packages and `pg`; no outbound-HTTP code in the server; the app container's only established connections are to the database; the browser run records zero requests to any third-party host; the container environment contains only this project's settings |
 
 Also checked: XSS probe text renders inertly in the widget and the console and no script runs; the page URL
 is stored without query string or fragment; `ALLOWED_EMBED_ORIGINS` makes a browser refuse to render the

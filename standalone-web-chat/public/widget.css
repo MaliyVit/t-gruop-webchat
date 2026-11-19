@@ -65,7 +65,7 @@ button.primary:hover:not(:disabled) { filter: brightness(1.08); }
 
 #messages { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 6px; padding: 14px; }
 .msg { max-width: 82%; padding: 8px 12px; border-radius: 12px; font-size: 15px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
-.msg.customer { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
+.msg.visitor { align-self: flex-end; background: var(--accent); color: var(--accent-ink); border-bottom-right-radius: 4px; }
 .msg.operator { align-self: flex-start; background: var(--bubble-op); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
 .msg.pending { opacity: .6; }
 .composer { display: flex; align-items: center; gap: 8px; flex: none; padding: 10px; background: var(--surface); border-top: 1px solid var(--line); }

@@ -25,7 +25,7 @@ test("text checks: type, emptiness, length, NUL and control characters", () => {
 });
 
 test("source page keeps origin and path only", () => {
-  assert.equal(normalizeSourcePage("https://shop.example.com/a/b?email=x@y.z#frag"), "https://shop.example.com/a/b");
+  assert.equal(normalizeSourcePage("https://www.example.com/a/b?email=x@y.z#frag"), "https://www.example.com/a/b");
   assert.equal(normalizeSourcePage("javascript:alert(1)"), null);
   assert.equal(normalizeSourcePage("not a url"), null);
   assert.equal(normalizeSourcePage(""), null);

@@ -36,7 +36,7 @@ the visitor's conversations. Every refusal on a conversation route is the same
 Start a conversation, or **continue the visitor's active one** (statuses `new`/`open`/`waiting`).
 
 ```json
-{ "first_message": "Hi, is this available?", "source_page": "https://shop.example.com/p/1?utm=x",
+{ "first_message": "Hi, I have a question about your page.", "source_page": "https://www.example.com/page/1?utm=x",
   "start_new": false, "idempotency_key": "b1c2…" }
 ```
 
@@ -57,7 +57,7 @@ Start a conversation, or **continue the visitor's active one** (statuses `new`/`
 
 ### `GET /api/visitor/conversations/:id/messages?after=<messageId>`
 Messages with id greater than `after` (default 0), ascending, at most 500 per call — page with the last id.
-Each message: `{id, conversation_id, sender_type: "customer"|"operator", sender_name, body, created_at}`.
+Each message: `{id, conversation_id, sender_type: "visitor"|"operator", sender_name, body, created_at}`.
 
 ### `POST /api/visitor/conversations/:id/messages`
 `{ "body": "text", "idempotency_key": "…" }` → `201`/`200` with the stored message. A visitor message
@@ -119,7 +119,7 @@ never returned. See [CRM_INTEGRATION.md](CRM_INTEGRATION.md) for usage patterns.
 
 ### `GET /api/integration/conversations?updated_since=<ISO time>&limit=<1..500>`
 ```json
-{ "conversations": [ { "id": "6f1c…-uuid", "status": "open", "source_page": "https://shop.example.com/p/1",
+{ "conversations": [ { "id": "6f1c…-uuid", "status": "open", "source_page": "https://www.example.com/page/1",
     "external_ref": "crm-42", "suspected_spam": false, "message_count": 4,
     "last_message_at": "2026-01-01T10:00:00Z", "created_at": "…", "updated_at": "…" } ],
   "count": 1, "next_cursor": "2026-01-01T10:00:00.123Z" }
