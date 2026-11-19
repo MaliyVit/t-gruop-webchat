@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operator inbox</title>
+<link rel="stylesheet" href="/operator.css">
+</head>
+<body>
+
+<form id="login" autocomplete="on" hidden>
+  <h1>Operator sign in</h1>
+  <label>Email <input id="email" type="email" name="email" autocomplete="username" required maxlength="320"></label>
+  <label>Password <input id="password" type="password" name="password" autocomplete="current-password" required maxlength="1024"></label>
+  <button class="btn primary" type="submit">Sign in</button>
+  <p id="loginError" class="error" role="alert" hidden></p>
+</form>
+
+<div id="app" hidden>
+  <div id="top">
+    <strong>Operator inbox</strong>
+    <span id="who"></span>
+    <button id="logout" class="btn" type="button">Sign out</button>
+  </div>
+  <p id="banner" role="status" hidden></p>
+  <div id="main">
+    <section id="listPane" aria-label="Conversations">
+      <div id="filters">
+        <select id="statusFilter" aria-label="Status filter">
+          <option value="">All statuses</option>
+          <option value="new">New</option>
+          <option value="open">Open</option>
+          <option value="waiting">Waiting</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select id="spamFilter" aria-label="Spam filter">
+          <option value="exclude">Hide suspected spam</option>
+          <option value="include">Show all</option>
+          <option value="only">Only suspected spam</option>
+        </select>
+      </div>
+      <ul id="list"></ul>
+    </section>
+    <section id="threadPane" aria-label="Conversation">
+      <div id="placeholder">Select a conversation</div>
+      <div id="threadHead" hidden>
+        <button id="back" class="btn" type="button">&larr; Back</button>
+        <div class="meta"><strong id="threadTitle"></strong><small id="threadSub"></small></div>
+        <button id="notSpam" class="btn" type="button" hidden>Not spam</button>
+        <input id="refInput" placeholder="CRM reference" maxlength="200" aria-label="CRM reference">
+        <button id="refSave" class="btn" type="button">Save</button>
+        <select id="statusSelect" aria-label="Conversation status">
+          <option value="new">New</option>
+          <option value="open">Open</option>
+          <option value="waiting">Waiting</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+      <div id="thread" role="log" aria-live="polite" hidden></div>
+      <p id="closedNote" hidden><span>This conversation is closed. Replies are disabled.</span><button id="reopen" class="btn" type="button">Reopen</button></p>
+      <form id="composer" hidden>
+        <textarea id="reply" rows="2" maxlength="4000" placeholder="Write a reply… (Enter to send, Shift+Enter for a new line)" aria-label="Reply"></textarea>
+        <button id="sendBtn" class="btn primary" type="submit">Send</button>
+      </form>
+    </section>
+  </div>
+</div>
+
+<script src="/operator.js"></script>
+</body>
+</html>

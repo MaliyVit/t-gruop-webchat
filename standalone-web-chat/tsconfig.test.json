@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "outDir": "dist-test", "rootDir": "." },
+  "include": [
+    "src/spam-guard.ts",
+    "src/validate.ts",
+    "src/auth.ts",
+    "src/config.ts",
+    "src/db.ts",
+    "test/**/*.ts"
+  ]
+}
