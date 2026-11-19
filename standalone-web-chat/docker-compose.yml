@@ -1,0 +1,65 @@
+# Standalone web chat: app + PostgreSQL. Nothing here depends on any external
+# service. Copy .env.example to .env and fill in the secrets first.
+name: standalone-web-chat
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chat
+      POSTGRES_USER: chat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env (see .env.example)}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chat -d chat"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No published port: the database is reachable only from the app container.
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://chat:${POSTGRES_PASSWORD}@db:5432/chat
+      PORT: "8080"
+      PUBLIC_URL: ${PUBLIC_URL:-}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-0}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
+      ALLOWED_EMBED_ORIGINS: ${ALLOWED_EMBED_ORIGINS:-}
+      BOOTSTRAP_OPERATOR_EMAIL: ${BOOTSTRAP_OPERATOR_EMAIL:-}
+      BOOTSTRAP_OPERATOR_PASSWORD: ${BOOTSTRAP_OPERATOR_PASSWORD:-}
+      BOOTSTRAP_OPERATOR_NAME: ${BOOTSTRAP_OPERATOR_NAME:-}
+      INTEGRATION_API_TOKEN: ${INTEGRATION_API_TOKEN:-}
+      WIDGET_TITLE: ${WIDGET_TITLE:-}
+      WIDGET_GREETING: ${WIDGET_GREETING:-}
+      WIDGET_ACCENT: ${WIDGET_ACCENT:-}
+      WIDGET_LOCALE: ${WIDGET_LOCALE:-}
+      RATE_LIMIT_WRITE_PER_MINUTE: ${RATE_LIMIT_WRITE_PER_MINUTE:-}
+      RATE_LIMIT_READ_PER_MINUTE: ${RATE_LIMIT_READ_PER_MINUTE:-}
+      RATE_LIMIT_LOGIN_PER_MINUTE: ${RATE_LIMIT_LOGIN_PER_MINUTE:-}
+      WS_MAX_CONNECTIONS: ${WS_MAX_CONNECTIONS:-}
+      WS_HEARTBEAT_SECONDS: ${WS_HEARTBEAT_SECONDS:-}
+      SPAM_PROTECTION: ${SPAM_PROTECTION:-}
+      SPAM_MIN_FIRST_MESSAGE_CHARS: ${SPAM_MIN_FIRST_MESSAGE_CHARS:-}
+      SPAM_CREATE_MAX_PER_WINDOW: ${SPAM_CREATE_MAX_PER_WINDOW:-}
+      SPAM_CREATE_WINDOW_SECONDS: ${SPAM_CREATE_WINDOW_SECONDS:-}
+      SPAM_DUPLICATE_WINDOW_SECONDS: ${SPAM_DUPLICATE_WINDOW_SECONDS:-}
+      SPAM_EXEMPT_LOCAL: ${SPAM_EXEMPT_LOCAL:-}
+    # Bound to localhost by default; put a TLS reverse proxy in front for a public
+    # deployment (see README). Set BIND_ADDRESS=0.0.0.0 only if you know why.
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${HTTP_PORT:-8080}:8080"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  db_data:
